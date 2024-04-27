@@ -1,0 +1,20 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "iam:CreateUser",
+                "iam:CreateAccessKey"
+            ],
+            "Resource": [
+                "*"
+            ],
+            "Effect": "Deny",
+            "Condition": {
+                "StringNotEquals": {
+                    "aws:PrincipalARN": "arn:aws:iam::*:role/"
+                }
+            }
+        }
+    ]
+}

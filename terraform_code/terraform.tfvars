@@ -1,0 +1,5 @@
+region = "us-east-1"
+access_key = ""
+secret_key = ""
+deployment_administration_role_arn = "arn:aws:iam::900665950707:role/AdministratorRole" 
+development_administration_role_arn = "arn:aws:iam::746859465164:role/AdministratorRole" 

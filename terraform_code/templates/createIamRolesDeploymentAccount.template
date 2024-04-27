@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Configure all IAM roles that will be used by deployment account.
+
+Parameters:
+  DeploymentAccountId: 
+    Type: String
+    Description: "Deployment account id"
+    Default: "637423343990"
+  DevelopmentAccountId:
+    Type: String
+    Description: "Development account id"
+    Default: "730335550356"
+Resources:
+  JenkinsDeploymentRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+  JenkinsDeploymentRoleInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+       Path: "/"
+       Roles:
+         - Ref: "JenkinsDeploymentRole"
+  JenkinsDeploymentPolicy:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: 'sts:AssumeRole'
+            Resource: [
+              !Sub 'arn:aws:iam::${DevelopmentAccountId}:role/CC-JENKINS-ASSUME-ROLE-DEV'
+            ]
+      PolicyName: 'JenkinsDeploymentPolicy'
+      Roles: 
+        - !Ref JenkinsDeploymentRole
+  JenkinsCloudformationPolicy:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: [
+                "cloudformation:RollbackStack",
+                "cloudformation:CreateStack",
+                "cloudformation:DeleteStack",
+                "cloudformation:UpdateStack",
+                "cloudformation:CreateChangeSet",
+                "cloudformation:DescribeStacks"
+            ]
+            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${DevelopmentAccountId}:stack/*/*'
+      PolicyName: 'JenkinsCloudformationPolicy'
+      Roles: 
+        - Ref: "JenkinsDeploymentRole"
+    

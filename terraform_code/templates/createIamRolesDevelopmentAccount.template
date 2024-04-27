@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Configure all IAM roles that will be used by development account.
+
+Parameters:
+  DeploymentAccountId: 
+    Type: String
+    Description: "Deployment account id"
+    Default: "900665950707"
+  DevelopmentAccountId:
+    Type: String
+    Description: "Development account id"
+    Default: "746859465164"
+
+Resources:
+  JenkinsAssumeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              AWS: !Sub "arn:aws:iam::${DeploymentAccountId}:root"
+            Action: "sts:AssumeRole"
+      Path: "/"
+
+  JenkinsAssumeRoleInstanceProfile:
+    Type: "AWS::IAM::InstanceProfile"
+    Properties:
+       Path: "/"
+       Roles:
+         - Ref: "JenkinsAssumeRole"
+
+  CloudformationPolicy:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: [
+                "cloudformation:RollbackStack",
+                "cloudformation:CreateStack",
+                "cloudformation:DeleteStack",
+                "cloudformation:UpdateStack",
+                "cloudformation:CreateChangeSet",
+                "cloudformation:DescribeStacks"
+            ]
+            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${DevelopmentAccountId}:stack/*/*'
+      PolicyName: 'CloudformationPolicy'
+      Roles: 
+        - Ref: "JenkinsAssumeRole"
+
